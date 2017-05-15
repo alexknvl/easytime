@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from typing import Union, Optional
+
 import time
 import datetime
 import pytz
@@ -11,7 +13,7 @@ utc = pytz.utc
 local = tzlocal()
 
 
-def tz(name):
+def tz(name: str) -> datetime.tzinfo:
     """Returns a tzinfo object with the given name."""
     if name == 'utc':
         return pytz.utc
@@ -21,7 +23,9 @@ def tz(name):
         return pytz.timezone(name)
 
 
-def ts(year, month, day, hour=0, minute=0, second=0, microsecond=0):
+def ts(year: int, month: int, day: int,
+       hour: int=0, minute: int=0, second: int=0,
+       microsecond: int=0) -> float:
     """
     >>> ts(year=1970, month=1, day=1)
     0.0
@@ -36,7 +40,8 @@ def ts(year, month, day, hour=0, minute=0, second=0, microsecond=0):
     return t1 - t0
 
 
-def dt(days=0, hours=0, minutes=0, seconds=0, miliseconds=0, microseconds=0):
+def dt(days: float=0, hours: float=0, minutes: float=0, seconds: float=0,
+       miliseconds: float=0, microseconds: float=0) -> float:
     """
     >>> dt(days=2, hours=1, minutes=30, seconds=12, miliseconds=32,
     ...    microseconds=123)
@@ -55,7 +60,7 @@ def dt(days=0, hours=0, minutes=0, seconds=0, miliseconds=0, microseconds=0):
     return seconds
 
 
-def now():
+def now() -> float:
     """
     >>> now() # doctest: +SKIP
     1425131462.31405
@@ -63,7 +68,7 @@ def now():
     return time.time()
 
 
-def strptime(text, format, timezone):
+def strptime(text: str, format: str, timezone: datetime.tzinfo) -> float:
     if isinstance(timezone, str):
         timezone = tz(timezone)
     elif not isinstance(timezone, datetime.tzinfo):
@@ -73,7 +78,7 @@ def strptime(text, format, timezone):
     return datetime_to_timestamp(dt, timezone)
 
 
-def strftime(timestamp, format, timezone):
+def strftime(timestamp: float, format: str, timezone: datetime.tzinfo) -> str:
     if isinstance(timezone, str):
         timezone = tz(timezone)
     elif not isinstance(timezone, datetime.tzinfo):
@@ -83,7 +88,9 @@ def strftime(timestamp, format, timezone):
     return dt.strftime(format)
 
 
-def datetime_to_timestamp(dt, timezone=None):
+def datetime_to_timestamp(dt: datetime.datetime,
+                          timezone: Optional[datetime.tzinfo]=None
+                          ) -> float:
     """Converts a datetime object to UTC timestamp"""
 
     if dt.tzinfo is None:
@@ -96,22 +103,23 @@ def datetime_to_timestamp(dt, timezone=None):
     return t1 - t0
 
 
-def timestamp_to_datetime(ts, timezone):
-    if isinstance(timezone, str):
-        timezone = tz(timezone)
-    elif not isinstance(timezone, datetime.tzinfo):
-        raise ValueError("Unknown timezone.")
+def timestamp_to_datetime(ts: float,
+                          tz_str: Union[str, datetime.tzinfo]
+                          ) -> datetime.datetime:
+    if isinstance(tz_str, str):
+        timezone = tz(tz_str)
 
-    return datetime.datetime.fromtimestamp(ts, timezone)
+    # FIXME[alex]: pytz is NOT compatible with datetime AFAIU.
+    return datetime.datetime.fromtimestamp(ts, timezone) # type: ignore
 
 
-def now_datetime(timezone):
-    if isinstance(timezone, str):
-        timezone = tz(timezone)
-    elif not isinstance(timezone, datetime.tzinfo):
-        raise ValueError("Unknown timezone.")
+def now_datetime(tz_str: Union[str, datetime.tzinfo]) -> datetime.datetime:
+    if isinstance(tz_str, str):
+        timezone = tz(tz_str)
+    else:
+        timezone = tz_str
 
-    return datetime.datetime.fromtimestamp(time.time(), timezone)
+    return datetime.datetime.now(timezone)
 
 if __name__ == "__main__":
     import doctest
